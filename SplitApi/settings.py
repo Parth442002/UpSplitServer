@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
 
     'authentication',
+    'groups',
 
 
     # Third Party Apps
