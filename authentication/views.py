@@ -13,7 +13,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 # Local Import
 from .models import Account
-from .serializers import MyTokenObtainPairSerializer, AccountRegisterSerializer
+from .serializers import (
+    MyTokenObtainPairSerializer,
+    AccountRegisterSerializer,
+    AccountViewSerializer,
+)
 from .helpers import get_tokens_for_user
 
 
@@ -38,3 +42,14 @@ class AccountRegisterView(APIView):
         return Response(
             serializer.errors["primary_identifier"], status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class AllAccountView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        account = Account.objects.all()
+        serializer = AccountViewSerializer(account, many=True)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response("Error Detected", status=status.HTTP_404_NOT_FOUND)

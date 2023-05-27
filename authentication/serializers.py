@@ -41,3 +41,9 @@ class AccountRegisterSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+
+
+class AccountViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ("id", "primary_identifier")
