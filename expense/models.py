@@ -14,7 +14,7 @@ class Expense(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100, default=str(id))
+    name = models.CharField(max_length=100)
     creator = models.ForeignKey(Account, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
     # Other Basic Data
