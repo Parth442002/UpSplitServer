@@ -17,7 +17,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Expense
-        fields = ("id", "name", "creator", "participants")
+        fields = ("id", "name", "creator", "participants", "total_amount", "payed_back")
         read_only = ["id", "created_on"]
 
     def create(self, validated_data):
@@ -29,3 +29,20 @@ class ExpenseSerializer(serializers.ModelSerializer):
             ExpenseParticipant.objects.create(expense=expense, **participant)
 
         return expense
+
+
+class RetriveExpenseSerializer(serializers.ModelSerializer):
+    participants = ExpenseParticipantSerializer(many=True)
+
+    class Meta:
+        model = Expense
+        fields = (
+            "id",
+            "name",
+            "creator",
+            "created_on",
+            "total_amount",
+            "payed_back",
+            "participants",
+        )
+        read_only = ["id", "created_on"]

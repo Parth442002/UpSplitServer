@@ -18,6 +18,13 @@ class Expense(models.Model):
     creator = models.ForeignKey(Account, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
     # Other Basic Data
+    total_amount = models.FloatField(default=0)
+    payed_back = models.FloatField(default=0)
+
+    def __str__(self):
+        return (
+            f"{self.name} by {self.creator.primary_identifier} - {self.created_on.date}"
+        )
 
 
 class ExpenseParticipant(models.Model):
@@ -25,7 +32,9 @@ class ExpenseParticipant(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    expense = models.ForeignKey(Expense, on_delete=models.CASCADE)
+    expense = models.ForeignKey(
+        Expense, on_delete=models.CASCADE, related_name="participants"
+    )
     share = models.FloatField(default=0)
     payed_back = models.FloatField(default=0)
     timestamp = models.DateTimeField(auto_now=True)

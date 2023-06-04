@@ -1,5 +1,7 @@
 # Django Import
 from django.contrib.auth import logout
+from django.http import Http404
+from django.db import models
 
 # Rest Framework Import
 from rest_framework import status
@@ -10,7 +12,14 @@ from rest_framework.views import APIView
 
 # Local Import
 from .models import Expense
-from .serializers import ExpenseSerializer
+from .serializers import ExpenseSerializer, RetriveExpenseSerializer
+
+
+def get_object_or_404(model, *args, **kwargs):
+    try:
+        return model.objects.get(*args, **kwargs)
+    except model.DoesNotExist:
+        raise Http404()
 
 
 class ExpenseListCreateView(APIView):
@@ -20,16 +29,38 @@ class ExpenseListCreateView(APIView):
     Create Expenses
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    def get_queryset(self):
+        user = self.request.user
+        return Expense.objects.filter(
+            models.Q(creator=user) | models.Q(participants__account=user)
+        )
 
     def get(self, request):
-        raise NotImplementedError("This function has not been implemented")
+        expenses = self.get_queryset()
+        serializer = serializer = RetriveExpenseSerializer(expenses, many=True)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"status": False}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
         serializer = ExpenseSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            expense = serializer.save()
             return Response(
+                {"expense_id": str(expense.id)},
                 status=status.HTTP_201_CREATED,
             )
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class RetriveUpdateExpenseView(APIView):
+    """
+    View to retrive,update and delete expenses based on id
+    """
+
+    def get(self, request, expense_id=None):
+        expense = get_object_or_404(Expense, id=expense_id)
+        serializer = RetriveExpenseSerializer(expense)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"status": False}, status=status.HTTP_404_NOT_FOUND)
