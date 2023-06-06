@@ -39,6 +39,9 @@ class ExpenseParticipant(models.Model):
     payed_back = models.FloatField(default=0)
     timestamp = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ("account", "expense")
+
     """
     def save(self, *args, **kwargs):
         if not self.id:

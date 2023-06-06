@@ -7,8 +7,6 @@ from .models import Expense, ExpenseParticipant
 
 
 class ExpenseParticipantSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField()
-
     class Meta:
         model = ExpenseParticipant
         fields = ["id", "account", "share", "payed_back"]
@@ -43,26 +41,30 @@ class ExpenseSerializer(serializers.ModelSerializer):
         return expense
 
     def update(self, instance, validated_data):
-        participants = validated_data.pop("participants")
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
-        # handling the participants
-        for participant_data in participants:
-            participant_id = participant_data.get("id", None)
-            import pdb
+        participants = validated_data.get("participants", None)
+        # If Participants are not provided
+        if participants == None:
+            for field, value in validated_data.items():
+                setattr(instance, field, value)
+        # If participants are provided:-
+        else:
+            # Creating or updating participant Objects
+            participants = validated_data.pop("participants")
+            for participant_data in participants:
+                account = participant_data.pop("account")
 
-            pdb.set_trace()
-            # If we want to edit an existing participant
-            if participant_id != None:
-                participant = ExpenseParticipant.objects.get(id=participant_id)
-                for field, value in participant_data.items():
-                    setattr(participant, field, value)
-                participant.save()
-            if not participant_id:
-                # If we want to add a new participant
-                participant = ExpenseParticipant.objects.create(
-                    expense=instance, **participant_data
+                participant, created = ExpenseParticipant.objects.update_or_create(
+                    expense=instance, account=account, **participant_data
                 )
+                participant = ExpenseParticipant.objects.get(
+                    expense=instance,
+                    account=account,
+                )
+                if created:
+                    print("new instance created")
+                else:
+                    print("last instance updated")
+
                 participant.save()
 
         instance.save()
